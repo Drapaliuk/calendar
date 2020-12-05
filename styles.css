@@ -1,0 +1,40 @@
+.calendar {
+    width: 300px;
+    height: 300px;
+    margin: auto;
+    margin-top: 200px;
+    
+}
+
+.days {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    /* grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr 1fr; */
+    grid-gap: 5px;
+    justify-items: center;
+}
+
+.calendar div {
+    /* background-color: royalblue; */
+}
+
+.month{
+    padding-top: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-gap: 5px;
+    margin-bottom: 25px;
+}
+
+
+.month div {
+    background-color: royalblue;
+    width: 15px;
+    height: 15px;
+    padding: 10px;
+    border-radius: 50%;
+    text-align: center;
+    cursor: pointer;
+}
