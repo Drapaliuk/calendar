@@ -2,22 +2,25 @@ const previousMonthBtn = document.querySelector('.previous-month-btn');
 const nextMonthBtn = document.querySelector('.next-month-btn');
 const calendarHeader = document.querySelector('.calendar__header');
 const monthWrapper = document.querySelector('.month-wrapper');
-const month = document.querySelector('.month')
-const header = document.querySelector('.calendar__header')
-console.log(header)
+const month = document.querySelector('.month');
+const header = document.querySelector('.calendar__header');
+const year = document.querySelector('.calendar__year');
+
+
+let yearCounter = 2020;
 const monthsInfo = [
-                      {name: "January", days: 31, diapason: {from: 1, to: 31}},
-                      {name: "February", days: 29, diapason: {from: 32, to: 59}},
-                      {name: "March", days: 31, diapason: {from: 60, to: 91}},
-                      {name: "April", days: 30, diapason: {from: 92, to: 121}},
-                      {name: "May", days: 31, diapason: {from: 122, to: 152}},
-                      {name: "Juan", days: 30, diapason: {from: 153, to: 182}},
-                      {name: "July", days: 31, diapason: {from: 183, to: 213}},
-                      {name: "August", days: 31, diapason: {from: 214, to: 244}},
-                      {name: "September", days: 30, diapason: {from: 245, to: 274}},
-                      {name: "October", days: 31, diapason: {from: 275, to: 305}},
-                      {name: "November", days: 30, diapason: {from: 306, to: 335}},
-                      {name: "December", days: 31, diapason: {from: 336, to: 366}},
+                      { name: "January", days: 31 },
+                      { name: "February", days: 29 },
+                      { name: "March", days: 31 },
+                      { name: "April", days: 30 },
+                      { name: "May", days: 31 },
+                      { name: "Juan", days: 30 },
+                      { name: "July", days: 31 },
+                      { name: "August", days: 31 },
+                      { name: "September", days: 30 },
+                      { name: "October", days: 31 },
+                      { name: "November", days: 30 },
+                      { name: "December", days: 31 },
                     ];
 const week = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ]
 let monthCounter = 0;
@@ -52,12 +55,13 @@ const monthComputer = function(year, month) {
 
 
 
-const monthDatesCreator = ({from = 31, to = 1}) => {
+const monthDatesCreator = ({from = 31, to = 1}, isRestDays) => {
     if(!from) return [];
     const result = [];
 
     for(let i = from; i <= to; i++) {
-        const date = document.createElement('div')
+        const date = document.createElement('div');
+        isRestDays && date.classList.add('rest-days')
         date.textContent = i
         result.push(date)
     };
@@ -69,7 +73,11 @@ const monthDatesCreator = ({from = 31, to = 1}) => {
 
 const createMonthElement = function(details, isFirstRender) {
     const {previousMonthDates, currentMonthDates, nextMonthDates, amountDatesForRender} = details;
-    const dates = [...monthDatesCreator(previousMonthDates), ...monthDatesCreator(currentMonthDates), ...monthDatesCreator(nextMonthDates)]
+    const dates = [ 
+                    ...monthDatesCreator(previousMonthDates, true),
+                    ...monthDatesCreator(currentMonthDates),
+                    ...monthDatesCreator(nextMonthDates, true)
+                  ]
     if(isFirstRender) {
         document.querySelector('.month').append(...dates)
         return
@@ -83,7 +91,14 @@ const createMonthElement = function(details, isFirstRender) {
 
 
 const refreshHeader = function() {
+    if(monthCounter === -1) {
+        header.textContent = monthsInfo[0].name
+    }
     header.textContent = monthsInfo[monthCounter].name
+}
+
+const refreshYear = () => {
+    year.textContent = yearCounter;
 }
 
 const renderMonth = function(isFirstRender) {
@@ -95,7 +110,21 @@ const remover = function() {
 }
 
 previousMonthBtn.addEventListener('click', () => {
-    if(monthCounter === 0) return
+    console.log('From handler',monthCounter)
+    if(monthCounter === -1 || firstRender) {
+        yearCounter--
+        monthCounter = 11
+        setTimeout(() => {
+            remover()
+            refreshYear()
+            refreshHeader()
+            renderMonth()
+        }, 0)
+        
+        return
+    }
+
+
     remover()
     refreshHeader()
     renderMonth()
@@ -115,9 +144,9 @@ nextMonthBtn.addEventListener('click', () => {
     ++monthCounter
 
 })
+console.log('From doc',monthCounter)
 
-
-    console.log('asdasd')
     refreshHeader()
+    refreshYear()
     renderMonth(true)
 

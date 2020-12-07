@@ -38,3 +38,7 @@
     text-align: center;
     cursor: pointer;
 }
+
+.rest-days {
+    opacity: .5
+}
