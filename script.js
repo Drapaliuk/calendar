@@ -4,11 +4,26 @@
 class Calendar {
     constructor(container) {
         this.container = document.querySelector(container)
-    }
-    // container = document.querySelector('.container');
-    currentMonth = 11;
-    currentYear = 2020;
-    weekDays = [ {fullName: 'Sunday', shortName: 'Sun'},
+    };
+
+    actualDate = {
+        year: null,
+        month: null,
+        date: null
+    };
+
+
+
+    selectedDiapason = {
+                        from: {year: null, month: null, date: null},
+                        to: {year: null, month: null, date: null},
+                        };
+
+    currentMonth = null;
+    currentYear = null;
+    currentDate = null;
+
+    weekDays = [{fullName: 'Sunday', shortName: 'Sun'},
                 {fullName: 'Monday', shortName: 'Mon'},
                 {fullName: 'Tuesday', shortName: 'Tue'},
                 {fullName: 'Wednesday', shortName: 'Wed'},
@@ -37,9 +52,13 @@ class Calendar {
         month: null,
     };
 
+    CONSTANT_PREVIOUS_MONTH = 'previous-month';
+    CONSTANT_CURRENT_MONTH = 'current-month';
+    CONSTANT_NEXT_MONTH = 'next-month';
+
+
 
     computerDates () {
-
         const currentDate = new Date(this.currentYear, this.currentMonth); //поточна дата
         const currentMonth = currentDate.getMonth() //поточний місяць
         const previousMonth = new Date(currentDate.getFullYear(), (currentDate.getMonth() - 1)).getMonth() // попередні місяць (число)
@@ -71,10 +90,96 @@ class Calendar {
 
     
 
+    diapasonSelectHandler (event) {
+        const date = event.target;
+        const dateBelonging = date.dataset.belonging;
+        const dateValue = Number(date.textContent);
+        
+        let clickCounter = 0;
+        console.log(clickCounter)
+        if(dateBelonging === this.CONSTANT_PREVIOUS_MONTH) {
+            if(clickCounter === 0) {
+                const diapasonValue = {
+                    year: this.currentYear,
+                    month: this.currentMonth - 1,
+                    date: dateValue
+                };
+
+                this.selectedDiapason.from = diapasonValue
+            }
+
+            if(clickCounter === 1) {
+                const diapasonValue = {
+                    year: this.currentYear,
+                    month: this.currentMonth - 1,
+                    date: dateValue
+                };
+
+                this.selectedDiapason.to = diapasonValue
+            }
+            return clickCounter++
+
+        }
+
+        if(dateBelonging === this.CONSTANT_CURRENT_MONTH) {
+
+            if(clickCounter === 0) {
+                const diapasonValue = {
+                    year: this.currentYear,
+                    month: this.currentMonth,
+                    date: dateValue
+                };
+
+                this.selectedDiapason.from = diapasonValue
+
+            }
+
+            if(clickCounter === 1) {
+                const diapasonValue = {
+                    year: this.currentYear,
+                    month: this.currentMonth,
+                    date: dateValue
+                };
+
+                this.selectedDiapason.to = diapasonValue
+            }
+            return clickCounter++
+
+        }
+
+        if(dateBelonging === this.CONSTANT_NEXT_MONTH) {
+
+            if(clickCounter === 0) {
+                const diapasonValue = {
+                    year: this.currentYear,
+                    month: this.currentMonth + 1,
+                    date: dateValue
+                };
+
+                this.selectedDiapason.from = diapasonValue
+            }
+
+            if(clickCounter === 1) {
+                const diapasonValue = {
+                    year: this.currentYear,
+                    month: this.currentMonth + 1,
+                    date: dateValue
+                };
+
+                this.selectedDiapason.to = diapasonValue
+            }
+            return clickCounter++
+
+        }
+
+        console.log(this.selectedDiapason)
+    }
+
 
     DOMStructureCreator (dates = []) {
         const nextMonthHandler = this.nextMonthHandler.bind(this)
         const previousMonthHandler = this.previousMonthHandler.bind(this)
+        const diapasonSelectHandler = this.diapasonSelectHandler.bind(this);
 
         const calendarWrapper = document.createElement('div')
         calendarWrapper.classList.add('calendar');
@@ -94,6 +199,7 @@ class Calendar {
             return dayElement;
         }))
         const monthWrapper = document.createElement('div')
+        monthWrapper.addEventListener('click', diapasonSelectHandler)
         const month = document.createElement('div');
         monthWrapper.append(month);
         const nextMonthBtn = document.createElement('button');
@@ -107,15 +213,11 @@ class Calendar {
         prevMonthBtn.addEventListener('click', previousMonthHandler)
 
 
-
-
         month.classList.add('month');
         month.append(...dates);
 
         this.setDOMReferences(year, monthName, monthWrapper, month)
         calendarWrapper.append(...[year, monthName, weekDays, monthWrapper, prevMonthBtn, nextMonthBtn]);
-        
-        
 
         this.container.append(calendarWrapper)
 
@@ -128,23 +230,40 @@ class Calendar {
             nextMonthDates
         } = data;
 
-        const monthDatesCreator = ({from = 31, to = 1}, isRemainderDates) => {
+
+        const monthDatesCreator = ({from = 31, to = 1}, isRemainderDates, belongingToMonth) => {
             if (!from) return [];
             const months = [];
         
             for (let i = from; i <= to; i++) {
+                const isToday = this.actualDate.year === this.currentYear &&
+                            this.actualDate.month === this.currentMonth &&
+                            this.actualDate.date === i
                 const date = document.createElement('div');
-                isRemainderDates && date.classList.add('rest-days')
                 date.textContent = i
+                date.classList.add('calendar__day')
+                date.setAttribute('data-belonging', belongingToMonth)
+
+                if(isToday){
+                    date.classList.add('calendar__day_today')
+                    months.push(date)
+                    continue
+    
+                }
+                if(isRemainderDates) {
+                    date.classList.add('calendar__day_remainder_day')
+                }
+
+
                 months.push(date)
             };
         
             return months
         };
         const dates = [
-            ...monthDatesCreator(previousMonthDates, true),
-            ...monthDatesCreator(currentMonthDates),
-            ...monthDatesCreator(nextMonthDates, true)
+            ...monthDatesCreator(previousMonthDates, true, 'previous-month'),
+            ...monthDatesCreator(currentMonthDates, false, 'current-month'),
+            ...monthDatesCreator(nextMonthDates, true, 'next-month')
         ];
     
         return dates
@@ -155,7 +274,6 @@ class Calendar {
         this.DOMReferences.monthName = monthName;
         this.DOMReferences.monthWrapper = monthWrapper;
         this.DOMReferences.month = month;
-
     }
 
     changeDOMReference (DOMElement, newReference) {
@@ -166,13 +284,29 @@ class Calendar {
         return this.DOMReferences[DOMElement]
     }
 
+    _initializeDates () {
+        const actualFullDate = new Date(Date.now());
+
+        this.actualDate.year = actualFullDate.getFullYear();
+        this.actualDate.date = actualFullDate.getDate();
+        this.actualDate.month = actualFullDate.getMonth();
+
+        this.currentYear = actualFullDate.getFullYear();
+        this.currentDate = actualFullDate.getDate();
+        this.currentMonth = actualFullDate.getMonth();
+    }
+
     initialize () {
-        if(this.isLeapYear) {
-            this.monthsInfo[1].days = 29;
-        }
+        this._initializeDates();
+        this.isLeapYear()
+       
         const computedMonths = this.computerDates();
         const dates = this.createDates(computedMonths);
         this.DOMStructureCreator(dates);
+    }
+
+    yearRerender () {
+        return this.getDOMReference('year').textContent = this.currentYear
     }
 
 
@@ -191,18 +325,19 @@ class Calendar {
         this.DOMReferences.monthName.textContent = newName;
     }
 
+    wasChangedYear () {
+        const wasChangedYear = +this.getDOMReference('year').textContent !== this.currentYear;
+        if(wasChangedYear) {
+            this.yearRerender();
+        };
 
+        return wasChangedYear;
+    }
 
     nextMonthHandler () {
         this.monthIncrem();
-        if(this.isLeapYear) {
-            this.monthsInfo[1].days === 29;
-        }
-        
-        if(+this.getDOMReference('year').textContent !== this.currentYear) {
-            this.getDOMReference('year').textContent = this.currentYear
-        };
-
+        this.isLeapYear();
+        this.wasChangedYear();
         this.getDOMReference('month').remove()
         this.monthNameRerender();
         this.monthRerender();
@@ -210,10 +345,8 @@ class Calendar {
 
     previousMonthHandler () {
         this.monthDecrem();
-        const isLeapYear = this.isLeapYear();
-        if(+this.getDOMReference('year').textContent !== this.currentYear) {
-            this.getDOMReference('year').textContent = this.currentYear
-        };
+        this.isLeapYear();
+        this.wasChangedYear();
         this.getDOMReference('month').remove()
         this.monthNameRerender();
         this.monthRerender();
@@ -238,7 +371,19 @@ class Calendar {
     }
 
     isLeapYear () {
-        return this.currentYear % 4 === 0
+        const LEAP_YEAR_FEBRUARY_DAYS = 29;
+        const REGULAR_YEAR_FEBRUARY_DAYS = 28;
+        const February = this.monthsInfo[1];
+
+        const isLeapYear = this.currentYear % 4 === 0;
+
+        if(isLeapYear) {
+            February.days = LEAP_YEAR_FEBRUARY_DAYS;
+        } else {
+            February.days = REGULAR_YEAR_FEBRUARY_DAYS;
+        }
+
+        return isLeapYear
     }
 
     yearIncrem () {
@@ -249,28 +394,39 @@ class Calendar {
         this.currentYear--
     }
 
-    getYear () {
-        return this.year
+    getCurrentYear () {
+        return function() {
+            return this.currentYear;
+        }.bind(this)
     }
 
-    getMonth () {
-        return this.month
+    getCurrentMonth () {
+        return function() {
+            return this.currentMonth;
+        }.bind(this)
     }
 
     setDate (dateRequest) {
         const {year, month, day} = dateRequest;
-
+        this.currentYear = year;
+        this.currentMonth = month;
+        this.yearRerender()
+        this.monthNameRerender()
+        this.monthRerender()
     }
 
-    findDateHandler () {
-        const handler = function(dateRequest) {
-            setDate(dateRequest)
-            console.log(this)
+    dateRequest(dateRequest) {
+        console.log(dateRequest)
+        this.setDate(dateRequest)
+    }
+
+    getHandlers () {
+        return {
+            previousMonth: this.previousMonthHandler.bind(this),
+            nextMonth: this.nextMonthHandler.bind(this),
+            dateRequest: this.dateRequest.bind(this),
         }
-
-        return handler.bind(this)
     }
-
 }
 
 
@@ -278,6 +434,7 @@ class Calendar {
 const myCalendar = new Calendar('.container')
 myCalendar.initialize();
 
-const handler = myCalendar.findDateHandler()
 
-console.log(handler())
+
+const days = document.querySelectorAll('.calendar__day');
+console.log(days[0].dataset.role)
