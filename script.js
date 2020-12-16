@@ -15,8 +15,9 @@ class Calendar {
 
 
     selectedDiapason = {
-                        from: {year: null, month: null, date: null},
-                        to: {year: null, month: null, date: null},
+                        selectCounter: 0,
+                        start: {date: null, month: null, year: null}, //renameTo Start
+                        end: {date: null, month: null, year: null}, //renameToEnd
                         };
 
     currentMonth = null;
@@ -55,6 +56,8 @@ class Calendar {
     CONSTANT_PREVIOUS_MONTH = 'previous-month';
     CONSTANT_CURRENT_MONTH = 'current-month';
     CONSTANT_NEXT_MONTH = 'next-month';
+    CONSTANT_LAST_MONTH = 11;
+    CONSTANT_FIRST_MONTH = 0;
 
 
 
@@ -87,92 +90,159 @@ class Calendar {
 
         return resultObj
     }
-
     
+    diapasonRender () {
+        const dates = Array.from(this.getDOMReference('month').querySelectorAll('*'));
+        const diapasonStart = this.selectedDiapason.start;
+        const diapasonEnd = this.selectedDiapason.end
+        const diapason = this.selectedDiapason;
+        const isSelectedDiapasonStart = diapason.selectCounter === 1;
+        const isSelectedDiapasonEnd = diapason.selectCounter === 2;
+        const isReselectedDiapasonEnd = diapason.selectCounter === 3;
+
+
+        if(isSelectedDiapasonStart){
+            dates.forEach(el => {
+                const elementInfo = this.dateInfoParser(el);
+                const isTheSameDate = elementInfo.date === diapasonStart.date;
+                const isTheSameMonth = elementInfo.month === diapasonStart.month;
+                const isTheSameYear = elementInfo.year === diapasonStart.year;
+                if(isTheSameDate && isTheSameMonth && isTheSameYear) {
+                    el.style.background = 'green'
+                }
+            })
+        }
+
+
+        // if(isSelectedDiapasonEnd) {
+        //     dates.forEach(el => {
+        //         const elementInfo = this.dateInfoParser(el);
+        //         const isMatchForDiapasonDate = elementInfo.date > diapasonStart.date && elementInfo.date <= diapasonEnd.date;
+        //         const isMatchForDiapasonMonth = elementInfo.month >= diapasonStart.month && elementInfo.month <= diapasonEnd.month;
+        //         const isMatchForDiapasonYear = elementInfo.year >= diapasonStart.year && elementInfo.year <= diapasonEnd.year;
+        //         const isMatchForDiapason = isMatchForDiapasonDate && isMatchForDiapasonMonth && isMatchForDiapasonYear;
+                
+        //         if(isMatchForDiapason) {
+        //             el.style.background = 'red'
+        //         }
+        //     })
+        // }
+
+        if(isSelectedDiapasonEnd) {
+            dates.forEach(el => {
+                const elementInfo = this.dateInfoParser(el);
+                const isMatchForDiapasonDate = elementInfo.date >= diapasonStart.date && elementInfo.date <= diapasonEnd.date;
+                const isMatchForDiapasonMonth = elementInfo.month >= diapasonStart.month && elementInfo.month <= diapasonEnd.month;
+                const isMatchForDiapasonYear = elementInfo.year >= diapasonStart.year && elementInfo.year <= diapasonEnd.year;
+                const isMatchForDiapason = isMatchForDiapasonDate && isMatchForDiapasonMonth && isMatchForDiapasonYear;
+                
+                if(isMatchForDiapason) {
+                    el.style.background = 'red';
+                } else {
+                    el.style.background = null;
+                }
+            })
+        }
+    }
 
     diapasonSelectHandler (event) {
-        const date = event.target;
-        const dateBelonging = date.dataset.belonging;
-        const dateValue = Number(date.textContent);
-        
-        let clickCounter = 0;
-        console.log(clickCounter)
+        const element = event.target; //rename to element
+        const dateInfo = this.dateInfoParser(element);
+        const dateBelonging = element.dataset.belonging;
+        const dateValue = dateInfo.date;
+
+        const diapasonValueCreator = (date, month) => {
+            const diapasonValue = {
+                year: this.currentYear,
+                month: this.currentMonth,
+                date
+            };
+
+            if(month === this.CONSTANT_PREVIOUS_MONTH) {
+                diapasonValue.month = (this.currentMonth - 1)
+                return diapasonValue
+            }
+            if(month === this.CONSTANT_NEXT_MONTH) {
+                diapasonValue.month = (this.currentMonth + 1)
+                return diapasonValue
+            }
+            
+            return diapasonValue;
+        }
+
+        const selectCounterManipulator = () => {
+            this.selectedDiapason.selectCounter++
+        }
+
         if(dateBelonging === this.CONSTANT_PREVIOUS_MONTH) {
-            if(clickCounter === 0) {
-                const diapasonValue = {
-                    year: this.currentYear,
-                    month: this.currentMonth - 1,
-                    date: dateValue
-                };
-
-                this.selectedDiapason.from = diapasonValue
+            if(this.selectedDiapason.selectCounter === 0) {
+                this.selectedDiapason.start = diapasonValueCreator(dateValue, this.CONSTANT_PREVIOUS_MONTH)
+                selectCounterManipulator()
+                this.diapasonRender()
+                return 
             }
 
-            if(clickCounter === 1) {
-                const diapasonValue = {
-                    year: this.currentYear,
-                    month: this.currentMonth - 1,
-                    date: dateValue
-                };
-
-                this.selectedDiapason.to = diapasonValue
+            if(this.selectedDiapason.selectCounter === 1) {
+                this.selectedDiapason.end = diapasonValueCreator(dateValue, this.CONSTANT_PREVIOUS_MONTH)
+                selectCounterManipulator()
+                this.diapasonRender()
+                return 
             }
-            return clickCounter++
+
+            if(this.selectedDiapason.selectCounter === 2) {
+                this.selectedDiapason.end = diapasonValueCreator(dateValue, this.CONSTANT_PREVIOUS_MONTH)
+                this.diapasonRender()
+                return 
+            }
+            
 
         }
 
         if(dateBelonging === this.CONSTANT_CURRENT_MONTH) {
-
-            if(clickCounter === 0) {
-                const diapasonValue = {
-                    year: this.currentYear,
-                    month: this.currentMonth,
-                    date: dateValue
-                };
-
-                this.selectedDiapason.from = diapasonValue
-
+            if(this.selectedDiapason.selectCounter === 0) {
+                this.selectedDiapason.start = diapasonValueCreator(dateValue)
+                selectCounterManipulator()
+                this.diapasonRender()
+                return 
             }
 
-            if(clickCounter === 1) {
-                const diapasonValue = {
-                    year: this.currentYear,
-                    month: this.currentMonth,
-                    date: dateValue
-                };
-
-                this.selectedDiapason.to = diapasonValue
+            if(this.selectedDiapason.selectCounter === 1) {
+                this.selectedDiapason.end = diapasonValueCreator(dateValue)
+                selectCounterManipulator()
+                this.diapasonRender()
+                return 
             }
-            return clickCounter++
+
+            if(this.selectedDiapason.selectCounter === 2) {
+                this.selectedDiapason.end = diapasonValueCreator(dateValue)
+                this.diapasonRender()
+                return 
+            }
 
         }
 
         if(dateBelonging === this.CONSTANT_NEXT_MONTH) {
-
-            if(clickCounter === 0) {
-                const diapasonValue = {
-                    year: this.currentYear,
-                    month: this.currentMonth + 1,
-                    date: dateValue
-                };
-
-                this.selectedDiapason.from = diapasonValue
+            if(this.selectedDiapason.selectCounter === 0) {
+                this.selectedDiapason.start = diapasonValueCreator(dateValue, this.CONSTANT_NEXT_MONTH)
+                selectCounterManipulator()
+                this.diapasonRender()
+                return 
             }
 
-            if(clickCounter === 1) {
-                const diapasonValue = {
-                    year: this.currentYear,
-                    month: this.currentMonth + 1,
-                    date: dateValue
-                };
-
-                this.selectedDiapason.to = diapasonValue
+            if(this.selectedDiapason.selectCounter === 1) {
+                this.selectedDiapason.end = diapasonValueCreator(dateValue, this.CONSTANT_NEXT_MONTH)
+                selectCounterManipulator()
+                this.diapasonRender()
+                return 
             }
-            return clickCounter++
+
+            if(this.selectedDiapason.selectCounter === 2) {
+                this.selectedDiapason.end = diapasonValueCreator(dateValue, this.CONSTANT_NEXT_MONTH)
+                this.diapasonRender()
+                return 
+            }
 
         }
-
-        console.log(this.selectedDiapason)
     }
 
 
@@ -180,7 +250,6 @@ class Calendar {
         const nextMonthHandler = this.nextMonthHandler.bind(this)
         const previousMonthHandler = this.previousMonthHandler.bind(this)
         const diapasonSelectHandler = this.diapasonSelectHandler.bind(this);
-
         const calendarWrapper = document.createElement('div')
         calendarWrapper.classList.add('calendar');
         
@@ -223,7 +292,19 @@ class Calendar {
 
     }
 
-    createDates  (data) {
+
+    dateInfoParser (element) {
+        const dateInfo = element.dataset.dateInfo;
+        const splittedToDateParts = dateInfo.split('-');
+        const transformedToNumber = splittedToDateParts.map(part => Number(part))
+        const [date, month, year] = transformedToNumber;
+        return {date, month, year};
+    }
+
+    
+
+    createDates (data) {
+  
         const {
             previousMonthDates,
             currentMonthDates,
@@ -231,25 +312,50 @@ class Calendar {
         } = data;
 
 
-        const monthDatesCreator = ({from = 31, to = 1}, isRemainderDates, belongingToMonth) => {
+        const creator = ({from = 31, to = 1}, isRemainderDates, belongingToMonth) => {
             if (!from) return [];
             const months = [];
+
+            const dateInfoCreator = (date, belongingToMonth) => {
+                
+                if(belongingToMonth === this.CONSTANT_PREVIOUS_MONTH) {
+                    const month = this.currentMonth === this.CONSTANT_FIRST_MONTH ? this.CONSTANT_LAST_MONTH : this.currentMonth - 1;
+                    const year = this.currentMonth === this.CONSTANT_FIRST_MONTH ? this.currentYear - 1 : this.currentYear
+                    return `${date}-${month}-${year}`
+                }
+
+                if(belongingToMonth === this.CONSTANT_NEXT_MONTH) {
+                    const month = this.currentMonth === this.CONSTANT_LAST_MONTH ? this.CONSTANT_FIRST_MONTH : this.currentMonth + 1;
+                    const year = this.currentMonth === this.CONSTANT_LAST_MONTH ? this.currentYear + 1 : this.currentYear;
+                    return `${date}-${month}-${year}`
+                }
+
+                const month = this.currentMonth;
+                const year = this.currentYear;
+                return `${date}-${month}-${year}`
+
+               
+            }
+
+            console.log('CREATOR', this.currentYear, this.currentMonth)
         
-            for (let i = from; i <= to; i++) {
+            for (let i = from; i <= to; i++) { //!to date
                 const isToday = this.actualDate.year === this.currentYear &&
-                            this.actualDate.month === this.currentMonth &&
-                            this.actualDate.date === i
+                                this.actualDate.month === this.currentMonth &&
+                                this.actualDate.date === i
+
                 const date = document.createElement('div');
                 date.textContent = i
                 date.classList.add('calendar__day')
                 date.setAttribute('data-belonging', belongingToMonth)
+                date.setAttribute('data-date-info', dateInfoCreator(i, belongingToMonth))
 
                 if(isToday){
                     date.classList.add('calendar__day_today')
                     months.push(date)
                     continue
-    
                 }
+
                 if(isRemainderDates) {
                     date.classList.add('calendar__day_remainder_day')
                 }
@@ -261,9 +367,9 @@ class Calendar {
             return months
         };
         const dates = [
-            ...monthDatesCreator(previousMonthDates, true, 'previous-month'),
-            ...monthDatesCreator(currentMonthDates, false, 'current-month'),
-            ...monthDatesCreator(nextMonthDates, true, 'next-month')
+            ...creator(previousMonthDates, true, 'previous-month'),
+            ...creator(currentMonthDates, false, 'current-month'),
+            ...creator(nextMonthDates, true, 'next-month')
         ];
     
         return dates
@@ -310,7 +416,7 @@ class Calendar {
     }
 
 
-    monthRerender () {
+    monthRerender (diapason) {
         this.DOMReferences.month.remove();
         const newMonth = document.createElement('div');
         newMonth.classList.add('month');
