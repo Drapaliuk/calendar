@@ -98,51 +98,41 @@ class Calendar {
         const diapason = this.selectedDiapason;
         const isSelectedDiapasonStart = diapason.selectCounter === 1;
         const isSelectedDiapasonEnd = diapason.selectCounter === 2;
-        const isReselectedDiapasonEnd = diapason.selectCounter === 3;
 
-
-        if(isSelectedDiapasonStart){
-            dates.forEach(el => {
+        if(isSelectedDiapasonStart) {
+            for(let el of dates ) {
+                console.log('start elements', el)
                 const elementInfo = this.dateInfoParser(el);
-                const isTheSameDate = elementInfo.date === diapasonStart.date;
-                const isTheSameMonth = elementInfo.month === diapasonStart.month;
-                const isTheSameYear = elementInfo.year === diapasonStart.year;
-                if(isTheSameDate && isTheSameMonth && isTheSameYear) {
-                    el.style.background = 'green'
+                const isDiapasonStart = elementInfo.date === diapasonStart.date && elementInfo.month === diapasonStart.month && elementInfo.year === diapasonStart.year;
+                if(isDiapasonStart) {
+                    el.style.background = 'red';
                 }
-            })
-        }
-
-
-        // if(isSelectedDiapasonEnd) {
-        //     dates.forEach(el => {
-        //         const elementInfo = this.dateInfoParser(el);
-        //         const isMatchForDiapasonDate = elementInfo.date > diapasonStart.date && elementInfo.date <= diapasonEnd.date;
-        //         const isMatchForDiapasonMonth = elementInfo.month >= diapasonStart.month && elementInfo.month <= diapasonEnd.month;
-        //         const isMatchForDiapasonYear = elementInfo.year >= diapasonStart.year && elementInfo.year <= diapasonEnd.year;
-        //         const isMatchForDiapason = isMatchForDiapasonDate && isMatchForDiapasonMonth && isMatchForDiapasonYear;
-                
-        //         if(isMatchForDiapason) {
-        //             el.style.background = 'red'
-        //         }
-        //     })
-        // }
+            }
+        };
 
         if(isSelectedDiapasonEnd) {
-            dates.forEach(el => {
+            let isBeginMarkDiapason = false;
+            let isFinishMarkDiapason = false;
+
+            for(let el of dates ) {
+                console.log('end elements', el)
                 const elementInfo = this.dateInfoParser(el);
-                const isMatchForDiapasonDate = elementInfo.date >= diapasonStart.date && elementInfo.date <= diapasonEnd.date;
-                const isMatchForDiapasonMonth = elementInfo.month >= diapasonStart.month && elementInfo.month <= diapasonEnd.month;
-                const isMatchForDiapasonYear = elementInfo.year >= diapasonStart.year && elementInfo.year <= diapasonEnd.year;
-                const isMatchForDiapason = isMatchForDiapasonDate && isMatchForDiapasonMonth && isMatchForDiapasonYear;
-                
-                if(isMatchForDiapason) {
-                    el.style.background = 'red';
-                } else {
-                    el.style.background = null;
+                const isDiapasonStart = elementInfo.date === diapasonStart.date && elementInfo.month === diapasonStart.month && elementInfo.year === diapasonStart.year;
+                const isDiapasonEnd = elementInfo.date === diapasonEnd.date && elementInfo.month === diapasonEnd.month && elementInfo.year === diapasonEnd.year;
+
+                if(isDiapasonStart) {
+                    isBeginMarkDiapason = true
                 }
-            })
-        }
+
+                if(isBeginMarkDiapason && !isFinishMarkDiapason) {
+                    el.style.background = 'red';
+                }
+
+                if(isDiapasonEnd) {
+                    isFinishMarkDiapason = true 
+                }
+            }
+        };
     }
 
     diapasonSelectHandler (event) {
@@ -301,8 +291,6 @@ class Calendar {
         return {date, month, year};
     }
 
-    
-
     createDates (data) {
   
         const {
@@ -337,7 +325,6 @@ class Calendar {
                
             }
 
-            console.log('CREATOR', this.currentYear, this.currentMonth)
         
             for (let i = from; i <= to; i++) { //!to date
                 const isToday = this.actualDate.year === this.currentYear &&
@@ -447,6 +434,7 @@ class Calendar {
         this.getDOMReference('month').remove()
         this.monthNameRerender();
         this.monthRerender();
+        this.diapasonRender()
     }
 
     previousMonthHandler () {
@@ -456,6 +444,8 @@ class Calendar {
         this.getDOMReference('month').remove()
         this.monthNameRerender();
         this.monthRerender();
+        this.diapasonRender()
+
     }
 
     monthIncrem () {
